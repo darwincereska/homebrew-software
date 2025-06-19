@@ -6,15 +6,10 @@ class Xswitcher < Formula
   sha256 ""
   license "MIT"
   
+  depends_on "go" => :build
+  
   def install
-    args = []
-    if Hardware::CPU.arm?
-      args << "ARCH=arm64"
-    elsif Hardware::CPU.intel?
-      args << "ARCH=x86_64"
-    end
-    
-    system "make", "build", *args
+    system "make", "build"
     bin.install "xswitcher"
   end
   
