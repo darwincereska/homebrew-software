@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: gem install --no-document toml-rb
 
-      - name: Fetch latest release info
+      - name: Fetch latest release tarball URL
         id: release
         uses: actions/github-script@v6
         with:
@@ -31,32 +31,49 @@ jobs:
             const release = await github.rest.repos.getLatestRelease({
               owner: 'darwincereska',
               repo: 'ttymer'
-            })
-            return release.data.tarball_url
+            });
+            return release.data.tarball_url;
 
       - name: Calculate SHA256 of tarball
         id: sha256
         run: |
-          curl -L -o release.tar.gz ${{ steps.release.outputs.result }}
-          sha256sum release.tar.gz | awk '{ print $1 }' > sha256.txt
-          echo "::set-output name=hash::$(cat sha256.txt)"
+          curl -L -o release.tar.gz "${{ steps.release.outputs.result }}"
+          SHA256=$(sha256sum release.tar.gz | awk '{ print $1 }')
+          echo "hash=$SHA256" >> $GITHUB_OUTPUT
+
+      - name: Get release version
+        id: version
+        uses: actions/github-script@v6
+        with:
+          result-encoding: string
+          script: |
+            const release = await github.rest.repos.getLatestRelease({
+              owner: 'darwincereska',
+              repo: 'ttymer'
+            });
+            return release.data.tag_name;
 
       - name: Update formula file
         run: |
-          VERSION=${{ steps.release.outputs.data.tag_name }}
+          VERSION=${{ steps.version.outputs.result }}
           SHA256=${{ steps.sha256.outputs.hash }}
           FORMULA_FILE=Formula/ttymer.rb
-          # Replace url and sha256 in the formula
+
+          echo "Updating formula to version $VERSION with sha256 $SHA256"
+
           sed -i "s|url \".*\"|url \"https://github.com/darwincereska/ttymer/archive/refs/tags/${VERSION}.tar.gz\"|g" $FORMULA_FILE
           sed -i "s/sha256 \".*\"/sha256 \"${SHA256}\"/g" $FORMULA_FILE
           sed -i "s/version \".*\"/version \"${VERSION#v}\"/g" $FORMULA_FILE || echo "No version line to update"
 
-      - name: Commit and push changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/ttymer.rb
-          git commit -m "Bump ttymer to $VERSION" || echo "No changes to commit"
-          git push origin HEAD:main
+      - name: Commit and push if changed
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add Formula/ttymer.rb
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto-update to build ${{ steps.version.outputs.result }}"
+            git push
+          else
+            echo "No changes to commit"
