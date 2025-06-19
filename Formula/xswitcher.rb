@@ -1,4 +1,4 @@
-class XSwitcher < Formula
+class Xswitcher < Formula
   version "0.1.2"
   desc ""
   homepage "https://github.com/darwincereska/xswitcher"
