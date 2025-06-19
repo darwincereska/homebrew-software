@@ -1,5 +1,5 @@
 class Ttymer < Formula
-  version "1.0.2"
+  version "1.0.1"
   desc "A terminal timer app written in Go"
   homepage "https://github.com/darwincereska/ttymer"
   url "https://github.com/darwincereska/ttymer/archive/refs/tags/v#{version}.tar.gz"
