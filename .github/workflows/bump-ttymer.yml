@@ -26,17 +26,18 @@ jobs:
         id: release
         uses: actions/github-script@v6
         with:
+          result-encoding: string
           script: |
-            const { data: release } = await github.rest.repos.getLatestRelease({
+            const release = await github.rest.repos.getLatestRelease({
               owner: 'darwincereska',
               repo: 'ttymer'
             })
-            return release
+            return release.data.tarball_url
 
       - name: Calculate SHA256 of tarball
         id: sha256
         run: |
-          curl -L -o release.tar.gz ${{ steps.release.outputs.data.tarball_url }}
+          curl -L -o release.tar.gz ${{ steps.release.outputs.results }}
           sha256sum release.tar.gz | awk '{ print $1 }' > sha256.txt
           echo "::set-output name=hash::$(cat sha256.txt)"
 
