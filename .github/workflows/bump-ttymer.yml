@@ -17,16 +17,13 @@ jobs:
         id: fetch
         uses: actions/github-script@v6
         with:
-          result-encoding: json
           script: |
             const release = await github.rest.repos.getLatestRelease({
               owner: 'darwincereska',
               repo: 'ttymer'
             });
-            return {
-              version: release.data.tag_name,
-              url: release.data.tarball_url
-            };
+            core.setOutput("version", release.data.tag_name);
+            core.setOutput("url", release.data.tarball_url);
 
       - name: Download tarball and compute SHA256
         id: compute
