@@ -1,9 +1,9 @@
-name: Bump XSwitcher Formula
+name: Bump xswitcher Formula
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 * * * *'  # every hour
 
 jobs:
   bump:
@@ -57,3 +57,4 @@ jobs:
             git push
           else
             echo "No changes to commit"
+          fi
