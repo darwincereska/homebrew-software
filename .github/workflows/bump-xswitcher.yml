@@ -56,7 +56,7 @@ jobs:
           git add Formula/xswitcher.rb
           if ! git diff --cached --quiet; then
             VERSION=${{ steps.fetch.outputs.version }}
-            git commit -m "Auto-update xswitcher to $VERSION"
+            git commit -m "bump: Updated xswitcher to $VERSION"
             git push
           else
             echo "No changes to commit"

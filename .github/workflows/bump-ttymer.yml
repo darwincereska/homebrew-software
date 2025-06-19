@@ -56,7 +56,7 @@ jobs:
           git add Formula/ttymer.rb
           if ! git diff --cached --quiet; then
             VERSION=${{ steps.fetch.outputs.version }}
-            git commit -m "Auto-update ttymer to $VERSION"
+            git commit -m "bump: Updated ttymer to $VERSION"
             git push
           else
             echo "No changes to commit"
