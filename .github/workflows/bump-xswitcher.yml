@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout tap repo
         uses: actions/checkout@v3
+        with:
+          persist-credentials: true
 
       - name: Fetch latest release from GitHub
         id: fetch
@@ -32,7 +34,7 @@ jobs:
           SHA256=$(sha256sum xswitcher.tar.gz | awk '{ print $1 }')
           echo "sha256=$SHA256" >> $GITHUB_OUTPUT
 
-      - name: Update Formula
+      - name: Update Formula (version & sha256 only)
         run: |
           VERSION=${{ steps.fetch.outputs.version }}
           SHA256=${{ steps.compute.outputs.sha256 }}
@@ -40,7 +42,6 @@ jobs:
 
           echo "Updating $FORMULA to version $VERSION"
 
-          sed -i "s|url \".*\"|url \"https://github.com/darwincereska/xswitcher/archive/refs/tags/${VERSION}.tar.gz\"|g" "$FORMULA"
           sed -i "s/sha256 \".*\"/sha256 \"$SHA256\"/g" "$FORMULA"
           sed -i "s/version \".*\"/version \"${VERSION#v}\"/g" "$FORMULA" || echo "No version field to replace"
 
