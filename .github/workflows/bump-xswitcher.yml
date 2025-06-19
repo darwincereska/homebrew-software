@@ -15,7 +15,7 @@ jobs:
         with:
           persist-credentials: true
 
-      - name: Fetch latest release from GitHub
+      - name: Fetch latest release tag from GitHub
         id: fetch
         uses: actions/github-script@v6
         with:
@@ -25,12 +25,14 @@ jobs:
               repo: 'xswitcher'
             });
             core.setOutput("version", release.data.tag_name);
-            core.setOutput("url", release.data.tarball_url);
 
-      - name: Download tarball and compute SHA256
+      - name: Download archive from refs/tags and compute SHA256
         id: compute
         run: |
-          curl -L -o xswitcher.tar.gz "${{ steps.fetch.outputs.url }}"
+          VERSION=${{ steps.fetch.outputs.version }}
+          ARCHIVE_URL="https://github.com/darwincereska/xswitcher/archive/refs/tags/${VERSION}.tar.gz"
+          echo "Downloading archive: $ARCHIVE_URL"
+          curl -L -o xswitcher.tar.gz "$ARCHIVE_URL"
           SHA256=$(sha256sum xswitcher.tar.gz | awk '{ print $1 }')
           echo "sha256=$SHA256" >> $GITHUB_OUTPUT
 
