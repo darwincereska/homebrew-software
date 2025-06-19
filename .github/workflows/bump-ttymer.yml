@@ -37,7 +37,7 @@ jobs:
       - name: Calculate SHA256 of tarball
         id: sha256
         run: |
-          curl -L -o release.tar.gz ${{ steps.release.outputs.results }}
+          curl -L -o release.tar.gz ${{ steps.release.outputs.result }}
           sha256sum release.tar.gz | awk '{ print $1 }' > sha256.txt
           echo "::set-output name=hash::$(cat sha256.txt)"
 
