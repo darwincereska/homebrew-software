@@ -29,20 +29,12 @@ jobs:
             core.setOutput("version", cleanVersion);
             core.setOutput("tag_name", version);
             
-            // Check if assets exist
-            const assets = release.data.assets;
-            const armAsset = assets.find(asset => 
-              asset.name.includes('arm64.dmg') || 
-              asset.name.includes('arm64')
-            );
+            // Construct the expected filename and URL
+            const expectedFilename = `apprenticevr-${cleanVersion}-arm64.dmg`;
+            const downloadUrl = `https://github.com/jimzrt/apprenticeVr/releases/download/${version}/${expectedFilename}`;
             
-            if (!armAsset) {
-              core.setFailed('No ARM64 DMG asset found in latest release');
-              return;
-            }
-            
-            core.setOutput("download_url", armAsset.browser_download_url);
-            core.setOutput("asset_name", armAsset.name);
+            core.setOutput("download_url", downloadUrl);
+            core.setOutput("asset_name", expectedFilename);
 
       - name: Download DMG and compute SHA256
         id: compute
@@ -108,7 +100,7 @@ jobs:
           
           if ! git diff --cached --quiet; then
             VERSION="${{ steps.fetch.outputs.version }}"
-            git commit -m "bump: Updated apprenticevr to $VERSION"
+            git commit -m "bump: Updated apprenticeVr to $VERSION"
             git push
             echo "Successfully updated apprenticevr cask to version $VERSION"
           else
