@@ -1,5 +1,5 @@
 cask "apprenticevr" do
-  version "1.3.4"
+  version "1.0.0"
   sha256 ""
   
   url "https://github.com/jimzrt/apprenticeVr/releases/download/v#{version}/apprenticevr-#{version}-arm64.dmg"
@@ -12,7 +12,7 @@ cask "apprenticevr" do
   
   postflight do
     system_command "/usr/bin/xattr",
-      args: ["-c","#{apppdir}/#{app}"],
+      args: ["-c","#{appdir}/apprenticevr.app"],
       sudo: false
   end
 end
