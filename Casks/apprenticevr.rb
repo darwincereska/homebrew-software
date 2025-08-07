@@ -1,6 +1,6 @@
 cask "apprenticevr" do
-  version "1.3.3"
-  sha256 "e1f626df83d83dbd3c8f7a1e2d6fcbdab0e620b26238e723c6e9b1aaeee33264"
+  version "1.3.4"
+  sha256 "bfe697797ce725ad7c1c4cc1b238061feb87236a8e2e62043cc45ce760a4ad0c"
   
   url "https://github.com/jimzrt/apprenticeVr/releases/download/v#{version}/apprenticevr-#{version}-arm64.dmg"
   
