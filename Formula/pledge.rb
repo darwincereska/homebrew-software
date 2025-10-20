@@ -1,5 +1,5 @@
 class Pledge < Formula 
-  version "1.0.0"
+  version "1.0.1"
   desc "An Interactive Commit Message Generator"
   homepage "https://github.com/darwincereska/pledge"
 
