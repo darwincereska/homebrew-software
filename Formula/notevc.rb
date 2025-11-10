@@ -11,7 +11,7 @@ class Notevc < Formula
     sha256 "d7f296d405cf2a5dcc06de5aa6195eb9ac0a572c53cc1e121be8415726cd7c5b"
   end
 
-  def install do
+  def install
     bin.install "notevc"
   end
 
