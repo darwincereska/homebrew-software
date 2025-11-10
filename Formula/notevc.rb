@@ -1,14 +1,14 @@
 class Notevc < Formula
-  version "1.0.1"
+  version "1.0.2"
   desc "Version control for markdown files"
   homepage "https://notevc.io"
 
   if OS.mac?
     url "https://github.com/darwincereska/notevc/releases/download/v#{version}/notevc-macos-arm64"
-    sha256 "bb1570676c2239117fc535ec18b7a6cceaaa2ad11cfe6f78640d0d6ac6af5c98"
+    sha256 "bc9d121de68a4157f678b7f86a1a17d24e69614c59e9a4a4c5dfd559eebdcb24"
   elsif OS.linux?
     url "https://github.com/darwincereska/notevc/releases/download/v#{version}/notevc-linux-x64"
-    sha256 "d7f296d405cf2a5dcc06de5aa6195eb9ac0a572c53cc1e121be8415726cd7c5b"
+    sha256 "ed2b353538e025f55a315fbb50a78e73e10e9ef2e605dc0ead4649fa7f22f615"
   end
 
   def install
