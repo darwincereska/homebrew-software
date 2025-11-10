@@ -12,7 +12,11 @@ class Notevc < Formula
   end
 
   def install
-    bin.install "notevc"
+    if OS.mac?
+      bin.install "notevc-macos-arm64" => "notevc"
+    elsif OS.linux?
+      bin.install "notevc-linux-x64" => "notevc"
+    end
   end
 
 end
