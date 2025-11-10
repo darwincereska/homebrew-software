@@ -5,10 +5,10 @@ class Notevc < Formula
 
   if OS.mac?
     url "https://github.com/darwincereska/notevc/releases/download/v#{version}/notevc-macos-arm64"
-    sha256 "bc9d121de68a4157f678b7f86a1a17d24e69614c59e9a4a4c5dfd559eebdcb24"
+    sha256 "a2f17d1032a7da4a45968d6dfae7e8f7a5b2bf45c7a69e9c8a5e9080873cf614"
   elsif OS.linux?
     url "https://github.com/darwincereska/notevc/releases/download/v#{version}/notevc-linux-x64"
-    sha256 "ed2b353538e025f55a315fbb50a78e73e10e9ef2e605dc0ead4649fa7f22f615"
+    sha256 "c9b064159a3921d2d708a1de4c00703b5ffeea8eb896a5e6cd56bd6c364f60d3"
   end
 
   def install
