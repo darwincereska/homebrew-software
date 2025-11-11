@@ -66,8 +66,8 @@ jobs:
           sed -i "s/^  version \".*\"/  version \"${version}\"/" Formula/notevc.rb
 
           # Update URLs
-          sed -i "s|notevc/releases/download/.*notevc-macos-arm64\"|${mac_url}\"|" Formula/notevc.rb
-          sed -i "s|notevc/releases/download/.*notevc-linux-x64\"|${linux_url}\"|" Formula/notevc.rb
+          sed -i "s|notevc-macos-arm64\"|notevc-macos-arm64\"|" Formula/notevc.rb
+          sed -i "s|notevc-linux-x64\"|notevc-linux-x64\"|" Formula/notevc.rb
 
           # Update macOS SHA256 in its block
           sed -i "/if OS\.mac\?/ { :a; N; /sha256 \"/ { s/sha256 \".*\"/sha256 \"${mac_hash}\"/; b; }; ba }" Formula/notevc.rb
