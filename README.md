@@ -9,6 +9,7 @@ It includes formulae and casks for tools, utilities, and applications written an
 #### Software made by me:
 - [XSwitcher](https://github.com/darwincereska/xswitcher) an automatic layout switcher
 - [ttymer](https://github.com/darwincereska/ttymer) a CLI timer app
+- [NoteVC](https://github.com/darwincereska/notevc) Version control for markdown
 ---
 #### Third-party software maintained by me:
 - [KDE Connect](https://kdeconnect.kde.org)
