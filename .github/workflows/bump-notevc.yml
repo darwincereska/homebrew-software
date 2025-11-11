@@ -13,76 +13,79 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get latest release version from notevc
-        id: get_release
+      - name: Get latest release info from notevc
+        id: release
         run: |
           api="https://api.github.com/repos/darwincereska/notevc/releases/latest"
-          response=$(curl -fsSL "$api")
-          version=$(echo "$response" | jq -r .tag_name | sed 's/^v//')
+          release_json=$(curl -fsSL "$api")
+          version=$(echo "$release_json" | jq -r .tag_name | sed 's/^v//')
+          mac_url=$(echo "$release_json" | jq -r '.assets[] | select(.name=="notevc-macos-arm64") | .browser_download_url')
+          linux_url=$(echo "$release_json" | jq -r '.assets[] | select(.name=="notevc-linux-x64") | .browser_download_url')
           echo "version=$version" >> $GITHUB_OUTPUT
-          echo "Latest release version: $version"
+          echo "mac_url=$mac_url" >> $GITHUB_OUTPUT
+          echo "linux_url=$linux_url" >> $GITHUB_OUTPUT
+          echo "Latest version: $version"
+          echo "macOS asset URL: $mac_url"
+          echo "Linux asset URL: $linux_url"
 
       - name: Get current formula version
-        id: get_current
+        id: current
         run: |
           current=$(grep 'version "' Formula/notevc.rb | cut -d'"' -f2)
           echo "current=$current" >> $GITHUB_OUTPUT
           echo "Current formula version: $current"
 
       - name: Stop if formula is up to date
-        if: ${{ steps.get_release.outputs.version == steps.get_current.outputs.current }}
+        if: ${{ steps.release.outputs.version == steps.current.outputs.current }}
         run: |
           echo "Formula is already up to date."
           exit 0
 
-      - name: Download binaries and calculate SHA256
+      - name: Download binaries and compute SHA256
         id: hashes
         run: |
-          version=${{ steps.get_release.outputs.version }}
           mkdir -p tmp
-          curl -fsSL -o tmp/notevc-macos-arm64 "https://github.com/darwincereska/notevc/releases/download/v${version}/notevc-macos-arm64"
-          curl -fsSL -o tmp/notevc-linux-x64 "https://github.com/darwincereska/notevc/releases/download/v${version}/notevc-linux-x64"
+          curl -fsSL -o tmp/notevc-macos-arm64 "${{ steps.release.outputs.mac_url }}"
+          curl -fsSL -o tmp/notevc-linux-x64 "${{ steps.release.outputs.linux_url }}"
           mac_hash=$(sha256sum tmp/notevc-macos-arm64 | awk '{print $1}')
           linux_hash=$(sha256sum tmp/notevc-linux-x64 | awk '{print $1}')
           echo "mac_hash=$mac_hash" >> $GITHUB_OUTPUT
           echo "linux_hash=$linux_hash" >> $GITHUB_OUTPUT
-          echo "Mac hash: $mac_hash"
-          echo "Linux hash: $linux_hash"
+          echo "mac hash: $mac_hash"
+          echo "linux hash: $linux_hash"
 
-      - name: Update Formula file with correct hashes
+      - name: Update Formula file
         run: |
-          version=${{ steps.get_release.outputs.version }}
+          version=${{ steps.release.outputs.version }}
           mac_hash=${{ steps.hashes.outputs.mac_hash }}
           linux_hash=${{ steps.hashes.outputs.linux_hash }}
+          mac_url=${{ steps.release.outputs.mac_url }}
+          linux_url=${{ steps.release.outputs.linux_url }}
 
           # Update version
           sed -i "s/^  version \".*\"/  version \"${version}\"/" Formula/notevc.rb
 
           # Update URLs
-          sed -i "s|notevc/releases/download/v[0-9.]\+/notevc-macos-arm64\"|notevc/releases/download/v${version}/notevc-macos-arm64\"|" Formula/notevc.rb
-          sed -i "s|notevc/releases/download/v[0-9.]\+/notevc-linux-x64\"|notevc/releases/download/v${version}/notevc-linux-x64\"|" Formula/notevc.rb
+          sed -i "s|notevc/releases/download/.*notevc-macos-arm64\"|${mac_url}\"|" Formula/notevc.rb
+          sed -i "s|notevc/releases/download/.*notevc-linux-x64\"|${linux_url}\"|" Formula/notevc.rb
 
-          # Correctly update hashes inside OS blocks
-          awk -v mac_hash="$mac_hash" -v linux_hash="$linux_hash" '
-            /if OS\.mac\?/ {print; getline; sub(/sha256 ".*"/, "sha256 \""mac_hash"\""); print; next}
-            /elsif OS\.linux\?/ {print; getline; sub(/sha256 ".*"/, "sha256 \""linux_hash"\""); print; next}
-            {print}
-          ' Formula/notevc.rb > Formula/tmp && mv Formula/tmp Formula/notevc.rb
+          # Update macOS SHA256 in its block
+          sed -i "/if OS\.mac\?/ { :a; N; /sha256 \"/ { s/sha256 \".*\"/sha256 \"${mac_hash}\"/; b; }; ba }" Formula/notevc.rb
+
+          # Update Linux SHA256 in its block
+          sed -i "/elsif OS\.linux\?/ { :a; N; /sha256 \"/ { s/sha256 \".*\"/sha256 \"${linux_hash}\"/; b; }; ba }" Formula/notevc.rb
 
           echo "Updated Formula:"
           cat Formula/notevc.rb
 
       - name: Commit and push changes
         run: |
-          version=${{ steps.get_release.outputs.version }}
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Formula/notevc.rb
-
           if git diff --cached --quiet; then
             echo "No changes detected. Formula already up to date."
             exit 0
           fi
-
           git commit -m "bump(notevc): updated version to ${version}"
           git push
