@@ -1,8 +1,8 @@
 name: Bump NoteVC Formula
 
 on:
-  schedule:
-    - cron: "0 * * * *" # every hour
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -15,27 +15,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get latest release version
+      - name: Get release version
         id: get_release
         run: |
-          api="https://api.github.com/repos/darwincereska/notevc/releases/latest"
-          response=$(curl -s "$api")
-          version=$(echo "$response" | jq -r .tag_name | sed 's/^v//')
+          version=${GITHUB_REF_NAME#v}
           echo "version=$version" >> $GITHUB_OUTPUT
 
-      - name: Get current formula version
-        id: get_current
-        run: |
-          current=$(grep 'version "' Formula/notevc.rb | cut -d'"' -f2)
-          echo "current=$current" >> $GITHUB_OUTPUT
-
-      - name: Stop if already up to date
-        if: ${{ steps.get_release.outputs.version == steps.get_current.outputs.current }}
-        run: |
-          echo "Already up to date."
-          exit 0
-
-      - name: Download new release binaries
+      - name: Download binaries
         id: download
         run: |
           version=${{ steps.get_release.outputs.version }}
@@ -47,7 +33,7 @@ jobs:
           echo "mac_hash=$mac_hash" >> $GITHUB_OUTPUT
           echo "linux_hash=$linux_hash" >> $GITHUB_OUTPUT
 
-      - name: Update Formula file
+      - name: Update Formula
         run: |
           version=${{ steps.get_release.outputs.version }}
           mac_hash=${{ steps.download.outputs.mac_hash }}
@@ -57,8 +43,6 @@ jobs:
           sed -i "s|notevc/releases/download/v.*/notevc-macos-arm64\"|notevc/releases/download/v${version}/notevc-macos-arm64\"|" Formula/notevc.rb
           sed -i "s|notevc/releases/download/v.*/notevc-linux-x64\"|notevc/releases/download/v${version}/notevc-linux-x64\"|" Formula/notevc.rb
 
-          mac_hash=$(sha256sum tmp/notevc-macos-arm64 | cut -d' ' -f1)
-          linux_hash=$(sha256sum tmp/notevc-linux-x64 | cut -d' ' -f1)
           awk -v mac_hash="$mac_hash" -v linux_hash="$linux_hash" '
             /if OS.mac\?/ {print; getline; sub(/sha256 ".*"/, "sha256 \""mac_hash"\""); print; next}
             /elsif OS.linux\?/ {print; getline; sub(/sha256 ".*"/, "sha256 \""linux_hash"\""); print; next}
