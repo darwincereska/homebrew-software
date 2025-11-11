@@ -15,46 +15,65 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get release version
-        id: get_release
+      - name: Extract version from release
+        id: version
         run: |
           version=${GITHUB_REF_NAME#v}
           echo "version=$version" >> $GITHUB_OUTPUT
+          echo "Detected version: $version"
 
-      - name: Download binaries
-        id: download
+      - name: Download binaries and calculate SHA256
+        id: hashes
         run: |
-          version=${{ steps.get_release.outputs.version }}
+          version=${{ steps.version.outputs.version }}
           mkdir -p tmp
-          curl -L -o tmp/notevc-macos-arm64 "https://github.com/darwincereska/notevc/releases/download/v${version}/notevc-macos-arm64"
-          curl -L -o tmp/notevc-linux-x64 "https://github.com/darwincereska/notevc/releases/download/v${version}/notevc-linux-x64"
-          mac_hash=$(sha256sum tmp/notevc-macos-arm64 | cut -d' ' -f1)
-          linux_hash=$(sha256sum tmp/notevc-linux-x64 | cut -d' ' -f1)
+          curl -fsSL -o tmp/notevc-macos-arm64 "https://github.com/darwincereska/notevc/releases/download/v${version}/notevc-macos-arm64"
+          curl -fsSL -o tmp/notevc-linux-x64 "https://github.com/darwincereska/notevc/releases/download/v${version}/notevc-linux-x64"
+
+          mac_hash=$(sha256sum tmp/notevc-macos-arm64 | awk '{print $1}')
+          linux_hash=$(sha256sum tmp/notevc-linux-x64 | awk '{print $1}')
+
           echo "mac_hash=$mac_hash" >> $GITHUB_OUTPUT
           echo "linux_hash=$linux_hash" >> $GITHUB_OUTPUT
+          echo "mac_hash: $mac_hash"
+          echo "linux_hash: $linux_hash"
 
-      - name: Update Formula
+      - name: Update Formula file
         run: |
-          version=${{ steps.get_release.outputs.version }}
-          mac_hash=${{ steps.download.outputs.mac_hash }}
-          linux_hash=${{ steps.download.outputs.linux_hash }}
+          version=${{ steps.version.outputs.version }}
+          mac_hash=${{ steps.hashes.outputs.mac_hash }}
+          linux_hash=${{ steps.hashes.outputs.linux_hash }}
 
-          sed -i "s/version \".*\"/version \"${version}\"/" Formula/notevc.rb
-          sed -i "s|notevc/releases/download/v.*/notevc-macos-arm64\"|notevc/releases/download/v${version}/notevc-macos-arm64\"|" Formula/notevc.rb
-          sed -i "s|notevc/releases/download/v.*/notevc-linux-x64\"|notevc/releases/download/v${version}/notevc-linux-x64\"|" Formula/notevc.rb
+          echo "Updating Formula/notevc.rb to version $version"
 
+          # Update version line
+          sed -i "s/^  version \".*\"/  version \"${version}\"/" Formula/notevc.rb
+
+          # Update URLs
+          sed -i "s|notevc/releases/download/v[0-9.]\+/notevc-macos-arm64\"|notevc/releases/download/v${version}/notevc-macos-arm64\"|" Formula/notevc.rb
+          sed -i "s|notevc/releases/download/v[0-9.]\+/notevc-linux-x64\"|notevc/releases/download/v${version}/notevc-linux-x64\"|" Formula/notevc.rb
+
+          # Update hashes
           awk -v mac_hash="$mac_hash" -v linux_hash="$linux_hash" '
             /if OS.mac\?/ {print; getline; sub(/sha256 ".*"/, "sha256 \""mac_hash"\""); print; next}
             /elsif OS.linux\?/ {print; getline; sub(/sha256 ".*"/, "sha256 \""linux_hash"\""); print; next}
             {print}
-          ' Formula/notevc.rb > Formula/tmp.rb && mv Formula/tmp.rb Formula/notevc.rb
+          ' Formula/notevc.rb > Formula/tmp && mv Formula/tmp Formula/notevc.rb
 
-      - name: Commit and push changes
+          echo "Updated Formula:"
+          cat Formula/notevc.rb
+
+      - name: Commit and push if changed
         run: |
-          version=${{ steps.get_release.outputs.version }}
+          version=${{ steps.version.outputs.version }}
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Formula/notevc.rb
-          git diff --quiet && echo "No changes detected." && exit 0
+
+          if git diff --cached --quiet; then
+            echo "No changes detected. Formula already up to date."
+            exit 0
+          fi
+
           git commit -m "bump(notevc): updated version to ${version}"
           git push
