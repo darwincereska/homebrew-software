@@ -49,21 +49,28 @@ jobs:
           echo "Mac hash: $mac_hash"
           echo "Linux hash: $linux_hash"
 
-      - name: Update Formula file
+      - name: Update Formula file with correct hashes
         run: |
           version=${{ steps.get_release.outputs.version }}
           mac_hash=${{ steps.hashes.outputs.mac_hash }}
           linux_hash=${{ steps.hashes.outputs.linux_hash }}
 
+          # Update version
           sed -i "s/^  version \".*\"/  version \"${version}\"/" Formula/notevc.rb
+
+          # Update URLs
           sed -i "s|notevc/releases/download/v[0-9.]\+/notevc-macos-arm64\"|notevc/releases/download/v${version}/notevc-macos-arm64\"|" Formula/notevc.rb
           sed -i "s|notevc/releases/download/v[0-9.]\+/notevc-linux-x64\"|notevc/releases/download/v${version}/notevc-linux-x64\"|" Formula/notevc.rb
 
+          # Correctly update hashes inside OS blocks
           awk -v mac_hash="$mac_hash" -v linux_hash="$linux_hash" '
-            /if OS.mac\?/ {print; getline; sub(/sha256 ".*"/, "sha256 \""mac_hash"\""); print; next}
-            /elsif OS.linux\?/ {print; getline; sub(/sha256 ".*"/, "sha256 \""linux_hash"\""); print; next}
+            /if OS\.mac\?/ {print; getline; sub(/sha256 ".*"/, "sha256 \""mac_hash"\""); print; next}
+            /elsif OS\.linux\?/ {print; getline; sub(/sha256 ".*"/, "sha256 \""linux_hash"\""); print; next}
             {print}
           ' Formula/notevc.rb > Formula/tmp && mv Formula/tmp Formula/notevc.rb
+
+          echo "Updated Formula:"
+          cat Formula/notevc.rb
 
       - name: Commit and push changes
         run: |
