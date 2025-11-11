@@ -1,5 +1,5 @@
 class Notevc < Formula
-  version "1.0.1"
+  version "1.0.3"
   desc "Version control for markdown files"
   homepage "https://notevc.io"
 
