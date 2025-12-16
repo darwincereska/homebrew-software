@@ -3,7 +3,7 @@ class Ttymer < Formula
   desc "A terminal timer app written in Go"
   homepage "https://github.com/darwincereska/ttymer"
   url "https://github.com/darwincereska/ttymer/archive/refs/tags/v#{version}.tar.gz"
-  sha256 "bef140a1a96994029153dca8c00b1750b9a5a764fb9db2dc68d7bb40e8a29e8a"
+  sha256 "833dea7c9010902fe6a1c3dcb77951cc19c6381d5a11419465d0ebee7ef90209"
   license "MIT"
   
   depends_on "go" => :build
