@@ -3,7 +3,7 @@ class Xswitcher < Formula
   desc ""
   homepage "https://github.com/darwincereska/xswitcher"
   url "https://github.com/darwincereska/xswitcher/archive/refs/tags/v#{version}.tar.gz"
-  sha256 "bef140a1a96994029153dca8c00b1750b9a5a764fb9db2dc68d7bb40e8a29e8a"
+  sha256 "1e5e9f703cc8c7400adda8f9c96a3ae592d91ef78d932c40fd425097d88eba9e"
   license "MIT"
   
   depends_on "go" => :build
