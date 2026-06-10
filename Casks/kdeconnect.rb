@@ -1,6 +1,6 @@
 cask "kdeconnect" do
-  version "6261"
-  sha256 "891d1fb2da7aca7c738f2e939da6fc6dc704818fe7a83069b63497304e68c7aa"
+  version "6265"
+  sha256 "92f9dba399c8edabda74e0ec987b12f851bbca2cde3647d876255d6fb7d15b4d"
 
   url "https://cdn.kde.org/ci-builds/network/kdeconnect-kde/master/macos-arm64/kdeconnect-kde-master-#{version}-macos-clang-arm64.dmg",
     verified: "cdn.kde.org"
